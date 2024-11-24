@@ -7,6 +7,10 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report
 from sklearn.metrics import accuracy_score
+from sklearn.metrics import precision_score, recall_score, f1_score, roc_auc_score, confusion_matrix, classification_report
+import xgboost as xgb
+from imblearn.over_sampling import SMOTE
+
 
 
 
@@ -68,20 +72,28 @@ scaler = MinMaxScaler()
 X_train[numerical_cols] = scaler.fit_transform(X_train[numerical_cols])
 X_test[numerical_cols] = scaler.transform(X_test[numerical_cols])
 
-rf = RandomForestClassifier(n_estimators=500 , oob_score = True, n_jobs = -1,
-                                  random_state =50,
-                                  max_leaf_nodes = 30)
-rf.fit(X_train, Y_train)
+xgb_model = xgb.XGBClassifier(n_estimators=500, random_state=50, max_depth=6, learning_rate=0.1, use_label_encoder=False)
+
+
+# Fit the model
+xgb_model.fit(X_train, Y_train)
 
 # Make predictions
-prediction_test = rf.predict(X_test)
-print ("Accuracy ",accuracy_score(Y_test, prediction_test))
-print("*"*20)
-importances = rf.feature_importances_
-feature_importance_df = pd.DataFrame({'Feature': X_train.columns, 'Importance': importances}).sort_values(by='Importance', ascending=False)
-#print(feature_importance_df.head(10))
+prediction_test = xgb_model.predict(X_test)
 
+# Print the accuracy
+print("Accuracy:", accuracy_score(Y_test, prediction_test))
+print("Precision:", precision_score(Y_test, prediction_test))
+print("Recall:", recall_score(Y_test, prediction_test))
+print("F1-Score:", f1_score(Y_test, prediction_test))
+print("AUC-ROC:", roc_auc_score(Y_test, prediction_test))
 
+# Classification report
+print("\nClassification Report:\n", classification_report(Y_test, prediction_test))
+
+# Confusion Matrix
+cm = confusion_matrix(Y_test, prediction_test)
+print("\nConfusion Matrix:\n", cm)
 
 
 
